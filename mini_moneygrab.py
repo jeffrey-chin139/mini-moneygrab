@@ -7,35 +7,6 @@ import time
 from flask import Flask, send_from_directory
 import os
 
-import threading
-import requests
-import time
-
-# --- Self-Ping Function to Keep App Alive ---
-def self_ping():
-    url = "https://mini-moneygrab.onrender.com/"
-    while True:
-        try:
-            requests.get(url)
-            print("Pinged self to stay awake.")
-        except Exception as e:
-            print("Ping failed:", e)
-        time.sleep(600)  # Ping every 10 minutes
-
-if __name__ == "__main__":
-    # Start background scraper
-    thread = threading.Thread(target=auto_update, daemon=True)
-    thread.start()
-
-    # Start self-ping thread
-    ping_thread = threading.Thread(target=self_ping, daemon=True)
-    ping_thread.start()
-
-    print("Mini MoneyGrab is starting in the cloud...")
-
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
-
 app = Flask(__name__)
 
 # ---------- Scraper Function ----------
@@ -48,7 +19,7 @@ def fetch_fx_rates():
     rows = table.find_all("tr")
 
     fx_data = []
-    for row in rows[1:]:  # skip header
+    for row in rows[1:]:  # Skip header row
         cols = row.find_all("td")
         if len(cols) >= 2:
             currency = cols[0].text.strip()
@@ -56,7 +27,7 @@ def fetch_fx_rates():
             try:
                 fx_data.append({"currency": currency, "rate": float(rate)})
             except:
-                pass  # skip invalid numbers
+                pass  # Skip invalid numbers
 
     output = {
         "base_currency": "SGD",
@@ -69,7 +40,7 @@ def fetch_fx_rates():
 
     print(f"FX rates updated at {output['timestamp']}")
 
-# ---------- Background Updater ----------
+# ---------- Background Auto-Updater ----------
 def auto_update(interval=60):
     while True:
         try:
@@ -78,7 +49,18 @@ def auto_update(interval=60):
             print("Error during scraping:", e)
         time.sleep(interval)
 
-# ---------- Flask Web Server ----------
+# ---------- Self-Ping to Keep Render Awake ----------
+def self_ping():
+    url = "https://mini-moneygrab.onrender.com/"  # Replace with your actual Render URL
+    while True:
+        try:
+            requests.get(url)
+            print("Pinged self to stay awake.")
+        except Exception as e:
+            print("Ping failed:", e)
+        time.sleep(600)  # Ping every 10 minutes
+
+# ---------- Flask Routes ----------
 @app.route("/")
 def serve_index():
     return send_from_directory(".", "index.html")
@@ -87,12 +69,18 @@ def serve_index():
 def serve_json():
     return send_from_directory(".", "fx_rates.json")
 
+# ---------- Main Entry Point ----------
 if __name__ == "__main__":
-    # Start background scraper
+    # Start background scraper thread
     thread = threading.Thread(target=auto_update, daemon=True)
     thread.start()
 
+    # Start self-ping thread
+    ping_thread = threading.Thread(target=self_ping, daemon=True)
+    ping_thread.start()
+
     print("Mini MoneyGrab is starting in the cloud...")
 
+    # Render uses a dynamic PORT environment variable
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
