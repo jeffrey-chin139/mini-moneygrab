@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Live FX Rates (SGD Base)</title>
+    <title>Live FX Rates (Base: SGD)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,7 +18,7 @@
             font-weight: bold;
         }
         table {
-            width: 50%;
+            width: 60%;
             border-collapse: collapse;
             margin-top: 10px;
             background: white;
@@ -27,11 +27,14 @@
         th, td {
             border: 1px solid #ddd;
             padding: 8px 12px;
-            text-align: left;
+            text-align: right;
         }
         th {
             background: #007BFF;
             color: white;
+        }
+        th:first-child, td:first-child {
+            text-align: left;
         }
         tbody tr:nth-child(even) {
             background: #f9f9f9;
@@ -45,7 +48,8 @@
         <thead>
             <tr>
                 <th>Currency</th>
-                <th>Rate</th>
+                <th>Bid</th>
+                <th>Ask</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -54,7 +58,6 @@
     <script>
         async function loadRates() {
             try {
-                // Add timestamp param to avoid cache
                 const response = await fetch('fx_rates.json?_=' + new Date().getTime());
                 const data = await response.json();
 
@@ -68,7 +71,7 @@
                 tbody.innerHTML = '';
                 data.rates.forEach(rate => {
                     const row = document.createElement('tr');
-                    row.innerHTML = `<td>${rate.currency}</td><td>${rate.rate.toFixed(4)}</td>`;
+                    row.innerHTML = `<td>${rate.code}</td><td>${rate.bid.toFixed(6)}</td><td>${rate.ask.toFixed(6)}</td>`;
                     tbody.appendChild(row);
                 });
             } catch (error) {
