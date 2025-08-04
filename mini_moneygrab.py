@@ -30,7 +30,6 @@ def fetch_fx_rates():
         "Malaysian Ringgit": "MYR",
         "Japanese Yen": "JPY",
         "Chinese Yuan Renminbi": "CNY",
-        "Indonesian Rupiah": "IDR",
         "Thai Baht": "THB",
         "Hong Kong Dollar": "HKD",
         "New Zealand Dollar": "NZD",
@@ -39,7 +38,7 @@ def fetch_fx_rates():
         "Vietnamese Dong": "VND",
         "Korean Won": "KRW",
         "Taiwan Dollar": "TWD"
-        # Add more if x-rates lists extra currencies
+        # Add more if X-Rates lists extra currencies
     }
 
     fx_data = []
@@ -48,16 +47,18 @@ def fetch_fx_rates():
         if len(cols) >= 3:
             currency_name = cols[0].text.strip()
             inverse_rate = cols[2].text.strip()  # Column 3 = 1 foreign = SGD
+
             try:
-                mid = float(inverse_rate)
+                # Remove commas for large numbers like VND 17,450.00
+                mid = float(inverse_rate.replace(',', ''))
             except:
                 continue
 
             if currency_name in mapping:
                 code = mapping[currency_name]
-                spread = 0.0001  # 0.01%
-                bid = round(mid * (1 - spread), 6)
-                ask = round(mid * (1 + spread), 6)
+                spread = 0.0001  # 0.01% spread
+                bid = round(mid * (1 - spread), 9)
+                ask = round(mid * (1 + spread), 9)
 
                 fx_data.append({
                     "code": code,
@@ -115,7 +116,7 @@ if __name__ == "__main__":
     ping_thread = threading.Thread(target=self_ping, daemon=True)
     ping_thread.start()
 
-    print("Mini MoneyGrab with bid/ask is starting in the cloud...")
+    print("Mini MoneyGrab with bid/ask & VND fix is starting in the cloud...")
 
     # Render uses a dynamic PORT environment variable
     port = int(os.environ.get("PORT", 5000))
