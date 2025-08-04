@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live FX Rates (SGD Base)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        #timestamp {
+            margin-bottom: 20px;
+            color: #555;
+            font-weight: bold;
+        }
+        table {
+            width: 50%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background: #007BFF;
+            color: white;
+        }
+        tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live FX Rates (Base: SGD)</h1>
+    <div id="timestamp">Loading rates...</div>
+    <table id="rates-table">
+        <thead>
+            <tr>
+                <th>Currency</th>
+                <th>Rate</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        async function loadRates() {
+            try {
+                // Add timestamp param to avoid cache
+                const response = await fetch('fx_rates.json?_=' + new Date().getTime());
+                const data = await response.json();
+
+                // Update timestamp
+                const tsElement = document.getElementById('timestamp');
+                const lastUpdated = new Date(data.timestamp);
+                tsElement.textContent = "Last Updated: " + lastUpdated.toLocaleString();
+
+                // Update table
+                const tbody = document.querySelector('#rates-table tbody');
+                tbody.innerHTML = '';
+                data.rates.forEach(rate => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${rate.currency}</td><td>${rate.rate.toFixed(4)}</td>`;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading rates:', error);
+                document.getElementById('timestamp').textContent = "Error loading rates. Retrying...";
+            }
+        }
+
+        // Initial load
+        loadRates();
+
+        // Refresh every 60 seconds
+        setInterval(loadRates, 60000);
+    </script>
+</body>
+</html>
