@@ -71,7 +71,7 @@
                 tbody.innerHTML = '';
                 data.rates.forEach(rate => {
                     const row = document.createElement('tr');
-                    row.innerHTML = `<td>${rate.code}</td><td>${rate.bid.toFixed(6)}</td><td>${rate.ask.toFixed(6)}</td>`;
+                    row.innerHTML = `<td>${rate.code}</td><td>${rate.bid.toFixed(9)}</td><td>${rate.ask.toFixed(9)}</td>`;
                     tbody.appendChild(row);
                 });
             } catch (error) {
