@@ -5,6 +5,7 @@ from datetime import datetime
 import threading
 import time
 from flask import Flask, send_from_directory
+import os
 
 app = Flask(__name__)
 
@@ -62,7 +63,7 @@ if __name__ == "__main__":
     thread = threading.Thread(target=auto_update, daemon=True)
     thread.start()
 
-    print("Mini MoneyGrab is running at http://127.0.0.1:9090")
-    print("Press Ctrl+C to stop.")
-    # Start Flask server
-    app.run(host="127.0.0.1", port=9090, debug=False)
+    print("Mini MoneyGrab is starting in the cloud...")
+
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
