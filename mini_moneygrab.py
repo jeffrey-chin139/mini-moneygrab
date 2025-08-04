@@ -7,6 +7,35 @@ import time
 from flask import Flask, send_from_directory
 import os
 
+import threading
+import requests
+import time
+
+# --- Self-Ping Function to Keep App Alive ---
+def self_ping():
+    url = "https://mini-moneygrab.onrender.com/"
+    while True:
+        try:
+            requests.get(url)
+            print("Pinged self to stay awake.")
+        except Exception as e:
+            print("Ping failed:", e)
+        time.sleep(600)  # Ping every 10 minutes
+
+if __name__ == "__main__":
+    # Start background scraper
+    thread = threading.Thread(target=auto_update, daemon=True)
+    thread.start()
+
+    # Start self-ping thread
+    ping_thread = threading.Thread(target=self_ping, daemon=True)
+    ping_thread.start()
+
+    print("Mini MoneyGrab is starting in the cloud...")
+
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
+
 app = Flask(__name__)
 
 # ---------- Scraper Function ----------
