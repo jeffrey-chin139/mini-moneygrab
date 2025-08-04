@@ -18,16 +18,52 @@ def fetch_fx_rates():
     table = soup.find("table", class_="tablesorter ratesTable")
     rows = table.find_all("tr")
 
+    # Currency name → ISO code mapping
+    mapping = {
+        "US Dollar": "USD",
+        "Euro": "EUR",
+        "British Pound": "GBP",
+        "Indian Rupee": "INR",
+        "Australian Dollar": "AUD",
+        "Canadian Dollar": "CAD",
+        "Swiss Franc": "CHF",
+        "Malaysian Ringgit": "MYR",
+        "Japanese Yen": "JPY",
+        "Chinese Yuan Renminbi": "CNY",
+        "Indonesian Rupiah": "IDR",
+        "Thai Baht": "THB",
+        "Hong Kong Dollar": "HKD",
+        "New Zealand Dollar": "NZD",
+        "Indonesian Rupiah": "IDR",
+        "Philippine Peso": "PHP",
+        "Vietnamese Dong": "VND",
+        "Korean Won": "KRW",
+        "Taiwan Dollar": "TWD"
+        # Add more if x-rates lists extra currencies
+    }
+
     fx_data = []
-    for row in rows[1:]:  # Skip header row
+    for row in rows[1:]:  # Skip header
         cols = row.find_all("td")
-        if len(cols) >= 2:
-            currency = cols[0].text.strip()
-            rate = cols[1].text.strip()
+        if len(cols) >= 3:
+            currency_name = cols[0].text.strip()
+            inverse_rate = cols[2].text.strip()  # Column 3 = 1 foreign = SGD
             try:
-                fx_data.append({"currency": currency, "rate": float(rate)})
+                mid = float(inverse_rate)
             except:
-                pass  # Skip invalid numbers
+                continue
+
+            if currency_name in mapping:
+                code = mapping[currency_name]
+                spread = 0.0001  # 0.01%
+                bid = round(mid * (1 - spread), 6)
+                ask = round(mid * (1 + spread), 6)
+
+                fx_data.append({
+                    "code": code,
+                    "bid": bid,
+                    "ask": ask
+                })
 
     output = {
         "base_currency": "SGD",
@@ -79,7 +115,7 @@ if __name__ == "__main__":
     ping_thread = threading.Thread(target=self_ping, daemon=True)
     ping_thread.start()
 
-    print("Mini MoneyGrab is starting in the cloud...")
+    print("Mini MoneyGrab with bid/ask is starting in the cloud...")
 
     # Render uses a dynamic PORT environment variable
     port = int(os.environ.get("PORT", 5000))
